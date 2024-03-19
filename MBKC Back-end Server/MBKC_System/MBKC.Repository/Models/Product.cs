@@ -24,7 +24,6 @@ namespace MBKC.Repository.Models
         public int DisplayOrder { get; set; }
         public int? ParentProductId { get; set; }
         public decimal HistoricalPrice { get; set; }
-
         
         [ForeignKey("CategoryId")]
         public virtual Category Category { get; set; }

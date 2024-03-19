@@ -340,7 +340,7 @@ namespace MBKC.API.Controllers
             });
         }
         #endregion
-        #region Get orders
+        #region Get grabfood
         /// <summary>
         ///  Get all orders for a specified store or kitchen center.
         /// </summary>

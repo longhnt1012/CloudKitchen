@@ -10,6 +10,8 @@ namespace MBKC.Repository.Models
 {
     public class PartnerProduct
     {
+   
+
         public int ProductId { get; set; }
         public int PartnerId { get; set; }
         public int StoreId { get; set; }
@@ -20,8 +22,8 @@ namespace MBKC.Repository.Models
         public decimal Price { get; set; }
         public DateTime? UpdatedDate { get; set; }
         [ForeignKey("ProductId")]
-        public virtual Product Product { get; set; }
-        [ForeignKey("StoreId,PartnerId,CreatedDate")]
+        public Product Product { get; set; }
+        
         public virtual StorePartner StorePartner { get; set; }
     }
 }

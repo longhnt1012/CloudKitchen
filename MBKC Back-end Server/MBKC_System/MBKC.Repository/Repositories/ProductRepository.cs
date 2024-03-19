@@ -13,7 +13,11 @@ namespace MBKC.Repository.Repositories
         {
             this._dbContext = dbContext;
         }
-
+        public Product GetProductById(int productId)
+        {
+            // Query the database to find the product with the specified ProductId
+            return _dbContext.Products.FirstOrDefault(p => p.ProductId == productId);
+        }
         public async Task<Product> GetProductAsync(string code)
         {
             try

@@ -20,6 +20,7 @@ using Hangfire.Logging;
 using MBKC.Repository.GrabFood.Models;
 using Newtonsoft.Json;
 using MBKC.Repository.GrabFoods.Models;
+using MBKC.Repository.Repositories;
 namespace MBKC.Service.Services.Implementations
 {
     public class OrderService : IOrderService
@@ -1220,10 +1221,28 @@ namespace MBKC.Service.Services.Implementations
                                 }
                                 isFailedOrder = false;
                                 PartnerProduct partnerProduct = storePartner.PartnerProducts.FirstOrDefault(x => x.ProductCode.ToLower().Equals(grabFoodItem.ItemID.ToLower()));
-                                
+                               
                                 OrderDetail newOrderDetail = null;
+
+                                //int id = partnerProduct.ProductId;
+                                string proCode = grabFoodItem.ItemCode;
+                                Product pro = new Product();
+                                 pro = await _unitOfWork.ProductRepository.GetProductAsync(proCode);
+                                string type = pro.Type;
                                 int? parentProductId = null;
-                                if (partnerProduct is not null && partnerProduct.Product.Type.ToLower().Equals("single"))
+                                
+                               
+
+                             
+                              //List<Product> products = new List<Product>();
+                               // products.Add(Product.GetFirstProduct(productCode));
+
+                                //pro = Product.GetFirstProduct(id);
+                               // string proType = pro.Type;
+                                // Check if the product is found
+
+
+                                if (partnerProduct is not null && type.ToLower().Equals("single"))
                                 {
                                     newOrderDetail = new OrderDetail()
                                     {
@@ -1236,7 +1255,7 @@ namespace MBKC.Service.Services.Implementations
                                     };
                                 }
 
-                                if (partnerProduct is not null && partnerProduct.Product.Type.ToLower().Equals("parent"))
+                                if (partnerProduct is not null && type.ToLower().Equals("parent"))
                                 {
                                     parentProductId = partnerProduct.Product.ProductId;
                                 }
@@ -1247,11 +1266,12 @@ namespace MBKC.Service.Services.Implementations
                                     {
                                         if (storePartner.PartnerProducts.Any(x => x.ProductCode.ToLower().Equals(modifier.ModifierID.ToLower())))
                                         {
+                                            string code = partnerProduct.ProductCode.ToLower();
                                             isFailedOrder = false;
                                             PartnerProduct partnerProductInModifier = null;
                                             if (storePartner.PartnerProducts.Where(x => x.ProductCode.ToLower().Equals(modifier.ModifierID.ToLower())).Count() > 1 && parentProductId is not null)
                                             {
-                                                partnerProductInModifier = storePartner.PartnerProducts.FirstOrDefault(x => x.ProductCode.ToLower().Equals(modifier.ModifierID.ToLower()) && x.Product.ParentProductId == parentProductId);
+                                                partnerProductInModifier = storePartner.PartnerProducts.FirstOrDefault(x => x.ProductCode.ToLower().Equals(modifier.ModifierID.ToLower()) && x.ProductId == parentProductId);
                                             }
                                             else if (storePartner.PartnerProducts.Where(x => x.ProductCode.ToLower().Equals(modifier.ModifierID.ToLower())).Count() == 1 && parentProductId is null)
                                             {
@@ -1318,7 +1338,10 @@ namespace MBKC.Service.Services.Implementations
                         }
                         else
                         {
-                            
+                            int partId = storePartner.PartnerId;
+                            Partner part = new Partner();
+                            part = await _unitOfWork.PartnerRepository.GetPartnerByIdAsync(partId);
+                            float taxcommission = part.TaxCommission;
                             Order newOrder = new Order()
                             {
                                 OrderPartnerId = grabFoodOrder.Order.OrderId,
@@ -1338,7 +1361,9 @@ namespace MBKC.Service.Services.Implementations
                                 TotalStoreDiscount = (grabFoodOrder.Order.Fare.TotalDiscountAmountDisplay == "" ? 0 : (decimal.Parse(grabFoodOrder.Order.Fare.TotalDiscountAmountDisplay)) - totalDiscountItems),
                                 PromotionPrice = (grabFoodOrder.Order.Fare.PromotionDisplay == "" || grabFoodOrder.Order.Fare.PromotionDisplay == "-" ? 0 : decimal.Parse(grabFoodOrder.Order.Fare.PromotionDisplay)),
                                 Tax = grabFoodOrder.Order.Fare.TaxDisplay == "" ? 0 : float.Parse(grabFoodOrder.Order.Fare.TaxDisplay),
-                                TaxPartnerCommission = storePartner.Partner.TaxCommission,
+
+                               
+                                TaxPartnerCommission = taxcommission,
                                 Cutlery = grabFoodOrder.Order.Cutlery,
                                 Note = grabFoodOrder.Order.Eater.Comment,
                                 PaymentMethod = grabFoodOrder.Order.PaymentMethod,
@@ -1545,187 +1570,187 @@ namespace MBKC.Service.Services.Implementations
             }
         }
 
-        public async Task<GetOrdersFromGrabFood> GetOrdersFromGrabFoodAsyncTool(List<GrabFoodOrderDetailResponse> grabFoodOrderDetails, Store store, StorePartner storePartner)
-        {
-            try
-            {
-                List<FailedGrabFoodOrderDetail> failedOrders = new List<FailedGrabFoodOrderDetail>();
-                List<Order> orders = new List<Order>();
-                Console.ForegroundColor = ConsoleColor.Blue;
-                Console.WriteLine("Start parse orders.");
-                Console.ResetColor();
-                if (grabFoodOrderDetails is not null && grabFoodOrderDetails.Count > 0)
-                {
-                    foreach (var grabFoodOrder in grabFoodOrderDetails)
-                    {
-                        List<OrderDetail> orderDetails = new List<OrderDetail>();
-                        bool isFailedOrder = false;
-                        string reason = "";
-                        decimal totalDiscountItems = 0;
-                        foreach (var grabFoodItem in grabFoodOrder.Order.ItemInfo.Items)
-                        {
-                            if (storePartner.PartnerProducts.Any(x => x.ProductCode.ToLower().Equals(grabFoodItem.ItemID.ToLower())))
-                            {
-                                decimal discountPriceItem = 0;
-                                if (grabFoodItem.DiscountInfo is not null && grabFoodItem.DiscountInfo.Count > 0)
-                                {
-                                    foreach (var discount in grabFoodItem.DiscountInfo)
-                                    {
-                                        discountPriceItem += discount.ItemDiscountPriceDisplay == "" ? 0 : decimal.Parse(discount.ItemDiscountPriceDisplay);
-                                    }
-                                    totalDiscountItems += discountPriceItem;
-                                }
-                                isFailedOrder = false;
-                                PartnerProduct partnerProduct = storePartner.PartnerProducts.FirstOrDefault(x => x.ProductCode.ToLower().Equals(grabFoodItem.ItemID.ToLower()));
+        //public async Task<GetOrdersFromGrabFood> GetOrdersFromGrabFoodAsyncTool(List<GrabFoodOrderDetailResponse> grabFoodOrderDetails, Store store, StorePartner storePartner)
+        //{
+        //    try
+        //    {
+        //        List<FailedGrabFoodOrderDetail> failedOrders = new List<FailedGrabFoodOrderDetail>();
+        //        List<Order> orders = new List<Order>();
+        //        Console.ForegroundColor = ConsoleColor.Blue;
+        //        Console.WriteLine("Start parse orders.");
+        //        Console.ResetColor();
+        //        if (grabFoodOrderDetails is not null && grabFoodOrderDetails.Count > 0)
+        //        {
+        //            foreach (var grabFoodOrder in grabFoodOrderDetails)
+        //            {
+        //                List<OrderDetail> orderDetails = new List<OrderDetail>();
+        //                bool isFailedOrder = false;
+        //                string reason = "";
+        //                decimal totalDiscountItems = 0;
+        //                foreach (var grabFoodItem in grabFoodOrder.Order.ItemInfo.Items)
+        //                {
+        //                    if (storePartner.PartnerProducts.Any(x => x.ProductCode.ToLower().Equals(grabFoodItem.ItemID.ToLower())))
+        //                    {
+        //                        decimal discountPriceItem = 0;
+        //                        if (grabFoodItem.DiscountInfo is not null && grabFoodItem.DiscountInfo.Count > 0)
+        //                        {
+        //                            foreach (var discount in grabFoodItem.DiscountInfo)
+        //                            {
+        //                                discountPriceItem += discount.ItemDiscountPriceDisplay == "" ? 0 : decimal.Parse(discount.ItemDiscountPriceDisplay);
+        //                            }
+        //                            totalDiscountItems += discountPriceItem;
+        //                        }
+        //                        isFailedOrder = false;
+        //                        PartnerProduct partnerProduct = storePartner.PartnerProducts.FirstOrDefault(x => x.ProductCode.ToLower().Equals(grabFoodItem.ItemID.ToLower()));
                                 
-                                OrderDetail newOrderDetail = null;
-                                int? parentProductId = null;
-                                if (partnerProduct is not null && partnerProduct.Product.Type.ToLower().Equals("single"))
-                                {
-                                    newOrderDetail = new OrderDetail()
-                                    {
-                                        OrderDetailId = partnerProduct.ProductId,
-                                        SellingPrice = partnerProduct.Price,
-                                        Note = grabFoodItem.Comment,
-                                        Quantity = grabFoodItem.Quantity,
-                                        DiscountPrice = discountPriceItem,
-                                        ExtraOrderDetails = new List<OrderDetail>()
-                                    };
-                                }
+        //                        OrderDetail newOrderDetail = null;
+        //                        int? parentProductId = null;
+        //                        if (partnerProduct is not null && partnerProduct.Product.Type.ToLower().Equals("single"))
+        //                        {
+        //                            newOrderDetail = new OrderDetail()
+        //                            {
+        //                                OrderDetailId = partnerProduct.ProductId,
+        //                                SellingPrice = partnerProduct.Price,
+        //                                Note = grabFoodItem.Comment,
+        //                                Quantity = grabFoodItem.Quantity,
+        //                                DiscountPrice = discountPriceItem,
+        //                                ExtraOrderDetails = new List<OrderDetail>()
+        //                            };
+        //                        }
 
-                                if (partnerProduct is not null && partnerProduct.Product.Type.ToLower().Equals("parent"))
-                                {
-                                    parentProductId = partnerProduct.Product.ProductId;
-                                }
+        //                        if (partnerProduct is not null && partnerProduct.Product.Type.ToLower().Equals("parent"))
+        //                        {
+        //                            parentProductId = partnerProduct.Product.ProductId;
+        //                        }
 
-                                foreach (var modifierGroup in grabFoodItem.ModifierGroups)
-                                {
-                                    foreach (var modifier in modifierGroup.Modifiers)
-                                    {
-                                        if (storePartner.PartnerProducts.Any(x => x.ProductCode.ToLower().Equals(modifier.ModifierID.ToLower())))
-                                        {
-                                            isFailedOrder = false;
-                                            PartnerProduct partnerProductInModifier = null;
-                                            if (storePartner.PartnerProducts.Where(x => x.ProductCode.ToLower().Equals(modifier.ModifierID.ToLower())).Count() >= 1 && parentProductId is not null)
-                                            {
-                                                partnerProductInModifier = storePartner.PartnerProducts.FirstOrDefault(x => x.ProductCode.ToLower().Equals(modifier.ModifierID.ToLower()) && x.Product.ParentProductId == parentProductId);
-                                            }
-                                            else if (storePartner.PartnerProducts.Where(x => x.ProductCode.ToLower().Equals(modifier.ModifierID.ToLower())).Count() == 1 && parentProductId is null)
-                                            {
-                                                partnerProductInModifier = storePartner.PartnerProducts.FirstOrDefault(x => x.ProductCode.ToLower().Equals(modifier.ModifierID.ToLower()));
-                                            }
+        //                        foreach (var modifierGroup in grabFoodItem.ModifierGroups)
+        //                        {
+        //                            foreach (var modifier in modifierGroup.Modifiers)
+        //                            {
+        //                                if (storePartner.PartnerProducts.Any(x => x.ProductCode.ToLower().Equals(modifier.ModifierID.ToLower())))
+        //                                {
+        //                                    isFailedOrder = false;
+        //                                    PartnerProduct partnerProductInModifier = null;
+        //                                    if (storePartner.PartnerProducts.Where(x => x.ProductCode.ToLower().Equals(modifier.ModifierID.ToLower())).Count() >= 1 && parentProductId is not null)
+        //                                    {
+        //                                        partnerProductInModifier = storePartner.PartnerProducts.FirstOrDefault(x => x.ProductCode.ToLower().Equals(modifier.ModifierID.ToLower()) && x.Product.ParentProductId == parentProductId);
+        //                                    }
+        //                                    else if (storePartner.PartnerProducts.Where(x => x.ProductCode.ToLower().Equals(modifier.ModifierID.ToLower())).Count() == 1 && parentProductId is null)
+        //                                    {
+        //                                        partnerProductInModifier = storePartner.PartnerProducts.FirstOrDefault(x => x.ProductCode.ToLower().Equals(modifier.ModifierID.ToLower()));
+        //                                    }
 
-                                            if (partnerProductInModifier is not null && partnerProductInModifier.Product.Type.ToLower().Equals("child"))
-                                            {
-                                                newOrderDetail = new OrderDetail()
-                                                {
-                                                    OrderDetailId = partnerProductInModifier.ProductId,
-                                                    SellingPrice = partnerProductInModifier.Price,
-                                                    Note = grabFoodItem.Comment,
-                                                    Quantity = grabFoodItem.Quantity,
-                                                    DiscountPrice = discountPriceItem,
-                                                    ExtraOrderDetails = new List<OrderDetail>()
-                                                };
-                                            }
+        //                                    if (partnerProductInModifier is not null && partnerProductInModifier.Product.Type.ToLower().Equals("child"))
+        //                                    {
+        //                                        newOrderDetail = new OrderDetail()
+        //                                        {
+        //                                            OrderDetailId = partnerProductInModifier.ProductId,
+        //                                            SellingPrice = partnerProductInModifier.Price,
+        //                                            Note = grabFoodItem.Comment,
+        //                                            Quantity = grabFoodItem.Quantity,
+        //                                            DiscountPrice = discountPriceItem,
+        //                                            ExtraOrderDetails = new List<OrderDetail>()
+        //                                        };
+        //                                    }
 
-                                            if (partnerProductInModifier is not null && partnerProductInModifier.Product.Type.ToLower().Equals("extra"))
-                                            {
-                                                OrderDetail newOrderDetailWithTypeExtra = new OrderDetail()
-                                                {
-                                                    OrderDetailId = partnerProductInModifier.ProductId,
-                                                    SellingPrice = partnerProductInModifier.Price,
-                                                    Note = "",
-                                                    DiscountPrice = 0,
-                                                    Quantity = modifier.Quantity
-                                                };
-                                                newOrderDetail.ExtraOrderGrabDetails.Add(newOrderDetailWithTypeExtra);
-                                            }
-                                        }
-                                        else
-                                        {
-                                            reason = "There are a few products in the order that cannot be mapped to any products in the system.";
-                                            isFailedOrder = true;
-                                            break;
-                                        }
-                                    }
-                                    if (isFailedOrder)
-                                    {
-                                        break;
-                                    }
-                                }
-                                if (isFailedOrder == false)
-                                {
-                                    orderDetails.Add(newOrderDetail);
-                                }
-                            }
-                            else
-                            {
-                                reason = "There are a few products in the order that cannot be mapped to any products in the system.";
-                                isFailedOrder = true;
-                                break;
-                            }
-                        }
-                        if (isFailedOrder)
-                        {
-                            failedOrders.Add(new FailedGrabFoodOrderDetail()
-                            {
-                                OrderId = grabFoodOrder.Order.OrderId,
-                                Reason = reason,
-                            });
-                        }
-                        else
-                        {
+        //                                    if (partnerProductInModifier is not null && partnerProductInModifier.Product.Type.ToLower().Equals("extra"))
+        //                                    {
+        //                                        OrderDetail newOrderDetailWithTypeExtra = new OrderDetail()
+        //                                        {
+        //                                            OrderDetailId = partnerProductInModifier.ProductId,
+        //                                            SellingPrice = partnerProductInModifier.Price,
+        //                                            Note = "",
+        //                                            DiscountPrice = 0,
+        //                                            Quantity = modifier.Quantity
+        //                                        };
+        //                                        newOrderDetail.ExtraOrderGrabDetails.Add(newOrderDetailWithTypeExtra);
+        //                                    }
+        //                                }
+        //                                else
+        //                                {
+        //                                    reason = "There are a few products in the order that cannot be mapped to any products in the system.";
+        //                                    isFailedOrder = true;
+        //                                    break;
+        //                                }
+        //                            }
+        //                            if (isFailedOrder)
+        //                            {
+        //                                break;
+        //                            }
+        //                        }
+        //                        if (isFailedOrder == false)
+        //                        {
+        //                            orderDetails.Add(newOrderDetail);
+        //                        }
+        //                    }
+        //                    else
+        //                    {
+        //                        reason = "There are a few products in the order that cannot be mapped to any products in the system.";
+        //                        isFailedOrder = true;
+        //                        break;
+        //                    }
+        //                }
+        //                if (isFailedOrder)
+        //                {
+        //                    failedOrders.Add(new FailedGrabFoodOrderDetail()
+        //                    {
+        //                        OrderId = grabFoodOrder.Order.OrderId,
+        //                        Reason = reason,
+        //                    });
+        //                }
+        //                else
+        //                {
                             
-                            Order newOrder = new Order()
-                            {
-                                OrderPartnerId = grabFoodOrder.Order.OrderId,
-                                StoreId = store.StoreId,
-                                PartnerId = storePartner.PartnerId,
-                                OrderDetails = orderDetails,
-                                CustomerName = grabFoodOrder.Order.Eater.Name,
-                                CustomerPhone = StringUtil.ChangeNumberPhoneFromGrabFood(grabFoodOrder.Order.Eater.MobileNumber),
-                                Address = grabFoodOrder.Order.Eater.Address.Address,
-                                ShipperName = grabFoodOrder.Order.Driver.Name,
-                                ShipperPhone = StringUtil.ChangeNumberPhoneFromGrabFood(grabFoodOrder.Order.Driver.MobileNumber),
-                                PartnerOrderStatus = grabFoodOrder.Order.Status,
-                                DisplayId = grabFoodOrder.Order.DisplayID,
-                                DeliveryFee = grabFoodOrder.Order.Fare.DeliveryFeeDisplay == "" ? 0 : decimal.Parse(grabFoodOrder.Order.Fare.DeliveryFeeDisplay),
-                                FinalTotalPrice = grabFoodOrder.Order.Fare.ReducedPriceDisplay == "" ? 0 : decimal.Parse(grabFoodOrder.Order.Fare.ReducedPriceDisplay),
-                                SubTotalPrice = grabFoodOrder.Order.Fare.RevampedSubtotalDisplay == "" ? 0 : decimal.Parse(grabFoodOrder.Order.Fare.RevampedSubtotalDisplay),
-                                TotalStoreDiscount = (grabFoodOrder.Order.Fare.TotalDiscountAmountDisplay == "" ? 0 : (decimal.Parse(grabFoodOrder.Order.Fare.TotalDiscountAmountDisplay)) - totalDiscountItems),
-                                PromotionPrice = (grabFoodOrder.Order.Fare.PromotionDisplay == "" || grabFoodOrder.Order.Fare.PromotionDisplay == "-" ? 0 : decimal.Parse(grabFoodOrder.Order.Fare.PromotionDisplay)),
-                                Tax = grabFoodOrder.Order.Fare.TaxDisplay == "" ? 0 : float.Parse(grabFoodOrder.Order.Fare.TaxDisplay),
-                                TaxPartnerCommission = storePartner.Partner.TaxCommission,
-                                Cutlery = grabFoodOrder.Order.Cutlery,
-                                Note = grabFoodOrder.Order.Eater.Comment,
-                                PaymentMethod = grabFoodOrder.Order.PaymentMethod,
-                                StorePartnerCommission = storePartner.Commission
-                            };
-                            orders.Add(newOrder);
-                        }
-                    }
-                }
+        //                    Order newOrder = new Order()
+        //                    {
+        //                        OrderPartnerId = grabFoodOrder.Order.OrderId,
+        //                        StoreId = store.StoreId,
+        //                        PartnerId = storePartner.PartnerId,
+        //                        OrderDetails = orderDetails,
+        //                        CustomerName = grabFoodOrder.Order.Eater.Name,
+        //                        CustomerPhone = StringUtil.ChangeNumberPhoneFromGrabFood(grabFoodOrder.Order.Eater.MobileNumber),
+        //                        Address = grabFoodOrder.Order.Eater.Address.Address,
+        //                        ShipperName = grabFoodOrder.Order.Driver.Name,
+        //                        ShipperPhone = StringUtil.ChangeNumberPhoneFromGrabFood(grabFoodOrder.Order.Driver.MobileNumber),
+        //                        PartnerOrderStatus = grabFoodOrder.Order.Status,
+        //                        DisplayId = grabFoodOrder.Order.DisplayID,
+        //                        DeliveryFee = grabFoodOrder.Order.Fare.DeliveryFeeDisplay == "" ? 0 : decimal.Parse(grabFoodOrder.Order.Fare.DeliveryFeeDisplay),
+        //                        FinalTotalPrice = grabFoodOrder.Order.Fare.ReducedPriceDisplay == "" ? 0 : decimal.Parse(grabFoodOrder.Order.Fare.ReducedPriceDisplay),
+        //                        SubTotalPrice = grabFoodOrder.Order.Fare.RevampedSubtotalDisplay == "" ? 0 : decimal.Parse(grabFoodOrder.Order.Fare.RevampedSubtotalDisplay),
+        //                        TotalStoreDiscount = (grabFoodOrder.Order.Fare.TotalDiscountAmountDisplay == "" ? 0 : (decimal.Parse(grabFoodOrder.Order.Fare.TotalDiscountAmountDisplay)) - totalDiscountItems),
+        //                        PromotionPrice = (grabFoodOrder.Order.Fare.PromotionDisplay == "" || grabFoodOrder.Order.Fare.PromotionDisplay == "-" ? 0 : decimal.Parse(grabFoodOrder.Order.Fare.PromotionDisplay)),
+        //                        Tax = grabFoodOrder.Order.Fare.TaxDisplay == "" ? 0 : float.Parse(grabFoodOrder.Order.Fare.TaxDisplay),
+        //                        TaxPartnerCommission = storePartner.Partner.TaxCommission,
+        //                        Cutlery = grabFoodOrder.Order.Cutlery,
+        //                        Note = grabFoodOrder.Order.Eater.Comment,
+        //                        PaymentMethod = grabFoodOrder.Order.PaymentMethod,
+        //                        StorePartnerCommission = storePartner.Commission
+        //                    };
+        //                    orders.Add(newOrder);
+        //                }
+        //            }
+        //        }
 
               
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("Parse orders Successfully.");
-                Console.ResetColor();
+        //        Console.ForegroundColor = ConsoleColor.Green;
+        //        Console.WriteLine("Parse orders Successfully.");
+        //        Console.ResetColor();
 
-                return new GetOrdersFromGrabFood()
-                {
-                    Orders = orders,
-                    FailedOrders = failedOrders
-                };
-            }
-            catch (Exception ex)
-            {
+        //        return new GetOrdersFromGrabFood()
+        //        {
+        //            Orders = orders,
+        //            FailedOrders = failedOrders
+        //        };
+        //    }
+        //    catch (Exception ex)
+        //    {
              
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("Parse orders Failed.");
-                Console.ResetColor();
-                throw new Exception(ex.Message);
-            }
-        }
+        //        Console.ForegroundColor = ConsoleColor.Red;
+        //        Console.WriteLine("Parse orders Failed.");
+        //        Console.ResetColor();
+        //        throw new Exception(ex.Message);
+        //    }
+        //}
 
     }
 }
