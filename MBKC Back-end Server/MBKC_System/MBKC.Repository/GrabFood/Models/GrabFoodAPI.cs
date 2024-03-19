@@ -11,6 +11,9 @@ namespace MBKC.Repository.GrabFood.Models
         public string AuthenticationURI { get; set; }
         public string StoresURI { get; set; }
         public string MenusURI { get; set; }
+
+        public string OrderURI { get; set; }
+        public string OrderDetailURI { get; set; }
         public string RequestSource { get; set; }
     }
 }

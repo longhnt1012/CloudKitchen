@@ -26,5 +26,9 @@ namespace MBKC.Repository.Models
         [ForeignKey("MasterOrderDetailId")]
         public virtual OrderDetail? MasterOrderDetail { get; set; }
         public virtual IEnumerable<OrderDetail>? ExtraOrderDetails { get; set; }
+
+        public List<OrderDetail>? ExtraOrderGrabDetails { get; set; }
+
+
     }
 }

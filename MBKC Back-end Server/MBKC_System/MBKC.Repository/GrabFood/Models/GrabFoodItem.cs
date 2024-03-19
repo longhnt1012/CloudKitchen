@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MBKC.Repository.GrabFoods.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,5 +18,10 @@ namespace MBKC.Repository.GrabFood.Models
         public List<string>? LinkedModifierGroupIDs { get; set; }
         public int SortOrder { get; set; }
         public decimal PriceInMin { get; set; }
+
+        public int Quantity { get; set; }
+        public string Comment { get; set; }
+        public List<GrabFoodModifierGroup> ModifierGroups { get; set; }
+        public List<GrabFoodDiscount> DiscountInfo { get; set; }
     }
 }

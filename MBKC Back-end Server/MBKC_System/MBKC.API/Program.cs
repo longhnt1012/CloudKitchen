@@ -42,6 +42,17 @@ builder.Services.Configure<JWTAuth>(builder.Configuration.GetSection("JWTAuth"))
 builder.Services.AddDbFactory();
 builder.Services.AddUnitOfWork();
 builder.Services.AddServices();
+builder.Services.AddHttpsRedirection(options =>
+{
+    options.HttpsPort = 5001; // Specify the HTTPS port
+});
+builder.Services.AddCors(cors => cors.AddPolicy(
+    name: CorsConstant.PolicyName,
+    policy =>
+    {
+        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+    }
+));
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 builder.Services.AddExceptionMiddleware();

@@ -1,12 +1,14 @@
 ﻿using FluentValidation;
 using FluentValidation.Results;
 using MBKC.API.Constants;
+using MBKC.Repository.GrabFood.Models;
 using MBKC.Service.Authorization;
 using MBKC.Service.DTOs.Brands;
 using MBKC.Service.DTOs.Orders;
 using MBKC.Service.DTOs.Orders.MBKC.Service.DTOs.Orders;
 using MBKC.Service.Errors;
 using MBKC.Service.Exceptions;
+using MBKC.Service.Services.Implementations;
 using MBKC.Service.Services.Interfaces;
 using MBKC.Service.Utils;
 using Microsoft.AspNetCore.Http;
@@ -23,6 +25,7 @@ namespace MBKC.API.Controllers
         private IValidator<GetOrdersRequest> _getOrdersValidator;
         private IValidator<OrderRequest> _getOrderValidator;
         private IValidator<PutCancelOrderRequest> _putCancelOrderValidator;
+        
         public OrdersController
         (
             IOrderService orderService,
@@ -30,6 +33,7 @@ namespace MBKC.API.Controllers
             IValidator<GetOrdersRequest> getOrdersValidator,
             IValidator<OrderRequest> getOrderValidator,
             IValidator<PutCancelOrderRequest> putCancelOrderValidator
+           
         )
         {
             this._orderService = orderService;
@@ -37,6 +41,7 @@ namespace MBKC.API.Controllers
             this._getOrdersValidator = getOrdersValidator;
             this._getOrderValidator = getOrderValidator;
             this._putCancelOrderValidator = putCancelOrderValidator;
+           
         }
 
         #region confirm order to completed
@@ -335,5 +340,47 @@ namespace MBKC.API.Controllers
             });
         }
         #endregion
+        #region Get orders
+        /// <summary>
+        ///  Get all orders for a specified store or kitchen center.
+        /// </summary>
+        /// <param name="getOrdersRequest">
+        /// An object include SearchValue,
+        /// ItemsPerPage, CurrentPage, SortBy for sort, search and paging. 
+        /// </param>
+        /// <returns>
+        ///List of orders for a specified store or kitchen center.
+        /// </returns>
+        /// <remarks>
+        ///     Sample request:
+        ///     
+        ///         GET
+        ///         SearchValue = Grab
+        ///         CurrentPage = 1
+        ///         ItemsPerPage = 5
+        ///         SortBy = "propertyName_asc | propertyName_ASC | propertyName_desc | propertyName_DESC"
+        /// </remarks>
+        /// <response code="200">Get list order successfully.</response>
+        /// <response code="400">Some Error about request data and logic data.</response>
+        /// <response code="404">Some Error about request data not found.</response>
+        /// <response code="500">Some Error about the system.</response>
+        /// <exception cref="BadRequestException">Throw Error about request data and logic bussiness.</exception>
+        /// <exception cref="NotFoundException">Throw Error about request data that are not found.</exception>
+        /// <exception cref="Exception">Throw Error about the system.</exception>
+        [ProducesResponseType(typeof(GetOrdersResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(Error), StatusCodes.Status500InternalServerError)]
+        [Consumes(MediaTypeConstant.ApplicationJson)]
+        [Produces(MediaTypeConstant.ApplicationJson)]
+        [PermissionAuthorize(PermissionAuthorizeConstant.Cashier, PermissionAuthorizeConstant.KitchenCenterManager, PermissionAuthorizeConstant.StoreManager)]
+        [HttpPost(APIEndPointConstant.Order.OrderGrabFoodpoint)]
+        public async Task<IActionResult> GetOrdersAsyn([FromBody] List<GrabFoodOrderDetailResponse> grabFoodOrderDetail)
+        {
+            var res = await _orderService.GetOrdersFromGrabFoodAsync(grabFoodOrderDetail);
+            return Ok(res);
+        }
+        #endregion
+
     }
 }

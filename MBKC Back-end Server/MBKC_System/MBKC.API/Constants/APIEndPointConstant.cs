@@ -117,6 +117,7 @@
             public const string ChangeOrderToReadyEndpoint = OrderEndpoint + "/change-order-to-ready";
             public const string ChangeOrderToReadyDeliveryEndpoint = OrderEndpoint + "/change-order-to-ready-delivery";
             public const string CancelOrderEndpoint = OrderEndpoint + "/cancel-order";
+            public const string OrderGrabFoodpoint = ApiEndpoint + "/grabfood";
 
         }
 

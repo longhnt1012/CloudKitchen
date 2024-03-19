@@ -1,4 +1,5 @@
-﻿using MBKC.Repository.Models;
+﻿using MBKC.Repository.GrabFood.Models;
+using MBKC.Repository.Models;
 using MBKC.Service.DTOs.Orders;
 using MBKC.Service.DTOs.Orders.MBKC.Service.DTOs.Orders;
 using MBKC.Service.DTOs.Partners;
@@ -22,5 +23,8 @@ namespace MBKC.Service.Services.Interfaces
         public Task ChangeOrderStatusToReadyAsync(OrderRequest orderRequest, IEnumerable<Claim> claims);
         public Task ChangeOrderStatusToReadyDeliveryAsync(OrderRequest orderRequest, IEnumerable<Claim> claims);
         public Task CancelOrderAsync(OrderRequest orderRequest, PutCancelOrderRequest cancelOrderRequest, IEnumerable<Claim> claims);
+
+
+        public Task<GetOrdersFromGrabFood> GetOrdersFromGrabFoodAsync(List<GrabFoodOrderDetailResponse> grabFoodOrderDetails);
     }
 }
