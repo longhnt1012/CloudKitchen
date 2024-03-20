@@ -906,13 +906,14 @@ namespace MBKC.Repository.Repositories
         {
             try
             {
-                return await this._dbContext.Products.Include(x => x.Category)
+                var rs =  await this._dbContext.Products.Include(x => x.Category)
                                         .Include(x => x.PartnerProducts).ThenInclude(x => x.StorePartner).ThenInclude(x => x.Partner)
                                         .Include(x => x.PartnerProducts).ThenInclude(x => x.StorePartner).ThenInclude(x => x.Store)
                                         .Include(x => x.Brand).ThenInclude(x => x.Stores).ThenInclude(x => x.KitchenCenter)
                                         .Include(x => x.ParentProduct).ThenInclude(x => x.PartnerProducts)
                                         .Include(x => x.ChildrenProducts)
-                                        .SingleOrDefaultAsync(x => x.ProductId == id && x.Status != (int)ProductEnum.Status.DISABLE);
+                                        .FirstOrDefaultAsync(x => x.ProductId == id && x.Status != (int)ProductEnum.Status.DISABLE);
+                return rs;
             }
             catch (Exception ex)
             {

@@ -22,7 +22,7 @@ namespace MBKC.Repository.Models
         public decimal Price { get; set; }
         public DateTime? UpdatedDate { get; set; }
         [ForeignKey("ProductId")]
-        public Product Product { get; set; }
+        public virtual   Product Product { get; set; }
         
         public virtual StorePartner StorePartner { get; set; }
     }

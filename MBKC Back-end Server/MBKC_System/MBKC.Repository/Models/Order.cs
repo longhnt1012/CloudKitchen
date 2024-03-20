@@ -26,7 +26,7 @@ namespace MBKC.Repository.Models
         public decimal PromotionPrice { get; set; }
         public float TaxPartnerCommission { get; set; }
         public float Tax { get; set; }
-        public string SystemStatus { get; set; }
+        public string? SystemStatus { get; set; }
         public int PartnerId { get; set; }
         public int StoreId { get; set; }
         public string DisplayId { get; set; }

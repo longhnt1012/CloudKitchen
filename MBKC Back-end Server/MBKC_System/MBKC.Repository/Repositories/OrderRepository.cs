@@ -70,7 +70,9 @@ namespace MBKC.Repository.Repositories
         {
             try
             {
-                await this._dbContext.Orders.AddAsync(order);
+                var id = order.Id;
+                 this._dbContext.Orders.AddAsync(order);
+                _dbContext.SaveChangesAsync();
             }
             catch (Exception ex)
             {
