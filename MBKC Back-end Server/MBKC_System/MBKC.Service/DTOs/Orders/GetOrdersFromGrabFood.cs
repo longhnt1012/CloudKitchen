@@ -11,7 +11,7 @@ namespace MBKC.Service.DTOs.Orders
     public class GetOrdersFromGrabFood
     {
 
-        public List<FailedGrabFoodOrderDetail>? FailedOrders { get; set; }
+        public List<FailedGrabFoodOrderDetail> FailedOrders { get; set; }
         public List<Order> Orders { get; set; }
     }
 }

@@ -25,12 +25,8 @@ namespace MBKC.Repository.Repositories
         {
             try
             {
-               var rs =  await this._dbContext.StorePartners
-                    .Include(x => x.Partner)
-                    .Include(x => x.Store)
-                    .Include(x => x.PartnerProducts)
+                return await this._dbContext.StorePartners.Include(x => x.PartnerProducts)
                                                             .SingleOrDefaultAsync(s => s.PartnerId == partnerId && s.StoreId == storeId && s.Status != (int)StorePartnerEnum.Status.DISABLE);
-                return rs; 
             }
             catch (Exception ex)
             {

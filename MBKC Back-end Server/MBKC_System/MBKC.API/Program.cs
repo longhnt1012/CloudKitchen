@@ -68,9 +68,6 @@ builder.Services.AddCors(cors => cors.AddPolicy(
                             }
                         ));
 //Middlewares
-
 var app = builder.Build();
-
 app.AddApplicationConfig();
 app.Run();
-app.UseSession();
